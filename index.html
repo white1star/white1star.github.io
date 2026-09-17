@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>像素智能 · 信息中心</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%23289048'/%3E%3C/svg%3E">
+<style>
+:root{
+  --brand:#289048;--brand-dark:#1c7234;--brand-soft:#e9f6ed;
+  --bg:#f6f8f7;--card:#fff;--text:#111418;--muted:#6c7784;--line:#dfe6ea;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 1px 4px rgba(16,24,40,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  min-height:100vh;display:flex;flex-direction:column;
+  font-family:"Microsoft YaHei","PingFang SC","Helvetica Neue",system-ui,sans-serif;
+  font-size:14px;line-height:1.7;color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+}
+.site-head{background:#fff;border-bottom:1px solid var(--line)}
+.head-inner{display:flex;align-items:center;height:54px;max-width:1156px;margin:0 auto;padding:0 20px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{display:flex;align-items:flex-end;justify-content:center;gap:3px;width:34px;height:34px;padding-bottom:8px;border-radius:9px;background:var(--brand);box-shadow:0 2px 6px rgba(40,144,72,.28)}
+.brand-mark i{display:block;width:4px;border-radius:2px;background:#fff}
+.brand-mark i:nth-child(1){height:9px}
+.brand-mark i:nth-child(2){height:17px}
+.brand-mark i:nth-child(3){height:12px}
+.brand-text{display:flex;flex-direction:column;line-height:1.3}
+.brand-text b{font-size:16px}
+.brand-text small{font-size:11px;color:var(--muted)}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 20px}
+.hero{width:100%;max-width:980px}
+.hero-title{margin:0;font-size:26px;font-weight:700;letter-spacing:.02em}
+.hero-sub{margin:6px 0 34px;font-size:14px;color:var(--muted)}
+.entries{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.entry{
+  display:flex;flex-direction:column;min-height:230px;padding:30px;
+  color:var(--text);text-decoration:none;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.entry:hover{border-color:var(--brand);transform:translateY(-3px);box-shadow:0 14px 30px rgba(16,24,40,.13),0 2px 6px rgba(16,24,40,.06)}
+.e-icon{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--brand-soft);color:var(--brand)}
+.e-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px;font-size:19px;font-weight:700}
+.e-arrow{color:#98a1ac;transition:color .18s ease,transform .18s ease}
+.entry:hover .e-arrow{color:var(--brand);transform:translateX(3px)}
+.entry p{margin:8px 0 0;font-size:13px;color:var(--muted)}
+.e-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.e-tags span{padding:1px 10px;border-radius:999px;background:#f1f3f5;color:#5b6673;font-size:12px}
+.e-foot{margin-top:auto;padding-top:18px;font-size:12px;color:var(--muted)}
+.e-foot b{color:var(--brand-dark)}
+.entry{animation:cardIn .3s ease both}
+.entry:nth-child(2){animation-delay:.08s}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.site-foot{border-top:1px solid var(--line);background:#fff}
+.foot-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 16px;max-width:1156px;margin:0 auto;padding:13px 20px;font-size:12px;color:var(--muted)}
+@media (max-width:760px){
+  main{padding:32px 14px;align-items:flex-start}
+  .entries{grid-template-columns:1fr}
+  .entry{min-height:0;padding:22px}
+  .hero-title{font-size:21px}
+}
+</style>
+</head>
+<body>
+<header class="site-head">
+  <div class="head-inner">
+    <span class="brand">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="brand-text"><b>像素智能</b><small>信息中心</small></span>
+    </span>
+  </div>
+</header>
+<main>
+  <div class="hero">
+    <h1 class="hero-title">欢迎回来</h1>
+    <p class="hero-sub">请选择今天要看的平台。</p>
+    <div class="entries">
+      <a class="entry" href="/KuangYeZIXUN/">
+        <span class="e-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M10 6h8v4h-8z"/><path d="M18 14h-8"/><path d="M15 18h-5"/></svg>
+        </span>
+        <span class="e-head"><span>矿业资讯站</span><span class="e-arrow">→</span></span>
+        <p>每日矿业新闻、矿价行情、政策法规与营销文案，服务公司内部信息获取。</p>
+        <span class="e-tags"><span>新闻</span><span>矿价</span><span>政策</span><span>文案</span></span>
+        <span class="e-foot">入口：<b>white1star.github.io/KuangYeZIXUN</b></span>
+      </a>
+      <a class="entry" href="/Xiangsu/">
+        <span class="e-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3.5-4 3 2.5L18 7"/><circle cx="7" cy="14" r="1.2"/><circle cx="18" cy="7" r="1.2"/></svg>
+        </span>
+        <span class="e-head"><span>竞品情报分析</span><span class="e-arrow">→</span></span>
+        <p>XRT 矿石分选与煤炭智能干选设备的招采台账、公众号线索与数据源监测。</p>
+        <span class="e-tags"><span>竞品台账</span><span>招采情报</span><span>线索雷达</span><span>数据源</span></span>
+        <span class="e-foot">入口：<b>white1star.github.io/Xiangsu</b></span>
+      </a>
+    </div>
+  </div>
+</main>
+<footer class="site-foot">
+  <div class="foot-inner">
+    <span>仅限公司内部使用</span>
+    <span>© 2026 唐山像素智能科技有限公司</span>
+  </div>
+</footer>
+</body>
+</html>
