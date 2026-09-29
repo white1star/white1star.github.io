@@ -154,6 +154,13 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 
   var closeBtn = document.getElementById('notice-close');
   var box = document.getElementById('notice-list');
 
+  // 面板声明了 aria-modal="true"，等于向辅助技术承诺"焦点被关在面板里"，
+  // 屏幕阅读器也会因此不再朗读背景内容。这时如果 Tab 还能走到背景卡片上，
+  // 就成了"宣称模态、实际不模态"：用户耳朵里没有背景，焦点却掉进了背景，
+  // 比不写 aria-modal 更糟。所以焦点陷阱是 aria-modal 的必要配套，不是可选优化。
+  // 另：inert 只作用于面板自己，管不到页面其余部分，这一半只能在这里补。
+  var FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
   function readId() {
     // 隐私模式/存储被禁用时 localStorage 会抛错，这里返回 null 表示"读不到"，
     // 与"读到空串（从未读过）"必须区分：读不到时红点没有依据，按全局约束一律不亮，
@@ -237,6 +244,31 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 
   closeBtn.addEventListener('click', close);
   mask.addEventListener('click', close);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); } });
+
+  // 通用实现：每次按键现查一遍面板内的可聚焦元素，不写死"只有关闭按钮"。
+  // 以后面板里加通知里的链接、按钮、分页，不用回来改这段。
+  function trapTab(e) {
+    // 面板关闭时一律不拦：关闭态由 inert 把面板移出 Tab 序列，
+    // 页面其余部分必须保持浏览器默认的 Tab 顺序，别抢。
+    if (!panel.classList.contains('on')) return;
+    if (e.key !== 'Tab') return;
+    // 过滤 hidden：隐藏节点不可见也不该接收焦点，留着会让循环停在一个看不见的位置
+    var nodes = Array.prototype.filter.call(panel.querySelectorAll(FOCUSABLE), function (el) { return !el.hidden; });
+    // 一个可聚焦元素都没有时也吞掉 Tab，否则焦点会从空面板里逃出去
+    if (!nodes.length) { e.preventDefault(); return; }
+    var first = nodes[0];
+    var last = nodes[nodes.length - 1];
+    var cur = document.activeElement;
+    // 焦点不在面板内（面板刚打开、或将来新增了别的触发方式）时先收回来
+    if (nodes.indexOf(cur) === -1) { e.preventDefault(); first.focus(); return; }
+    // 到边界就绕回另一端，阻止默认行为避免浏览器把焦点交给背景
+    if (e.shiftKey) {
+      if (cur === first) { e.preventDefault(); last.focus(); }
+    } else if (cur === last) {
+      e.preventDefault(); first.focus();
+    }
+  }
+  document.addEventListener('keydown', trapTab);
 })();
 </script>
 <footer class="site-foot">
