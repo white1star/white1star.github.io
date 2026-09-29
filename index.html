@@ -243,7 +243,8 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 
   });
   closeBtn.addEventListener('click', close);
   mask.addEventListener('click', close);
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); } });
+  // 面板关闭时 close() 会把焦点交还铃铛，若此时也响应 Esc，键盘用户在页面里随手按一下键焦点就会跳走
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && panel.classList.contains('on')) { close(); } });
 
   // 通用实现：每次按键现查一遍面板内的可聚焦元素，不写死"只有关闭按钮"。
   // 以后面板里加通知里的链接、按钮、分页，不用回来改这段。
