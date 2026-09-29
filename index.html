@@ -21,7 +21,8 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 .site-head{background:#fff;border-bottom:1px solid var(--line)}
-.head-inner{display:flex;align-items:center;height:54px;max-width:1156px;margin:0 auto;padding:0 20px}
+/* 品牌与铃铛两端对齐：铃铛要贴到页面右上角，靠 space-between 把两者推到两端 */
+.head-inner{display:flex;align-items:center;justify-content:space-between;height:54px;max-width:1156px;margin:0 auto;padding:0 20px}
 .brand{display:flex;align-items:center;gap:10px}
 .brand-mark{display:flex;align-items:flex-end;justify-content:center;gap:3px;width:34px;height:34px;padding-bottom:8px;border-radius:9px;background:var(--brand);box-shadow:0 2px 6px rgba(40,144,72,.28)}
 .brand-mark i{display:block;width:4px;border-radius:2px;background:#fff}
@@ -63,6 +64,27 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 
   .entry{min-height:0;padding:22px}
   .hero-title{font-size:21px}
 }
+/* 通知栏：铃铛 + 遮罩 + 右侧抽屉。颜色、圆角、字体全部沿用页面既有变量，不引外部字体/图标库（铃铛用内联 SVG） */
+.bell{position:relative;display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text);cursor:pointer}
+.bell:hover{border-color:var(--brand);color:var(--brand)}
+.bell-dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#e5484d;border:1.5px solid #fff}
+.notice-mask{position:fixed;inset:0;z-index:40;background:rgba(16,24,40,.28);opacity:0;pointer-events:none;transition:opacity .18s ease}
+.notice-mask.on{opacity:1;pointer-events:auto}
+.notice-panel{position:fixed;top:0;right:0;z-index:41;width:min(380px,100vw);height:100vh;background:var(--card);box-shadow:-8px 0 30px rgba(16,24,40,.14);transform:translateX(100%);transition:transform .2s ease;display:flex;flex-direction:column}
+.notice-panel.on{transform:none}
+.np-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);font-size:15px;font-weight:700}
+.np-close{border:0;background:none;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;padding:0 4px}
+.np-close:hover{color:var(--brand)}
+.np-list{flex:1;overflow:auto;padding:4px 18px 24px}
+.np-item{padding:14px 0;border-bottom:1px solid var(--line)}
+.np-item:last-child{border-bottom:0}
+.np-date{font-size:12px;color:var(--muted)}
+.np-pin{display:inline-block;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--brand-soft);color:var(--brand-dark);font-size:11px}
+.np-title{margin:5px 0 6px;font-size:15px;font-weight:700;line-height:1.4}
+.np-body{margin:0;font-size:13px;line-height:1.7;color:#3c4650;white-space:pre-wrap;word-break:break-word}
+.np-empty{padding:48px 0;text-align:center;color:var(--muted);font-size:13px}
+/* 移动端抽屉占满整屏宽度，否则 380px 会留出一条盖不住页面的缝 */
+@media (max-width:760px){ .notice-panel{width:100vw} }
 </style>
 </head>
 <body>
@@ -72,6 +94,13 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 
       <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="brand-text"><b>像素智能</b><small>信息中心</small></span>
     </span>
+    <button class="bell" id="notice-bell" type="button" aria-label="通知" aria-expanded="false" aria-controls="notice-panel">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.7 21a2 2 0 0 1-3.4 0"/>
+      </svg>
+      <span class="bell-dot" id="notice-dot" hidden></span>
+    </button>
   </div>
 </header>
 <main>
@@ -100,6 +129,102 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 
     </div>
   </div>
 </main>
+<!-- 通知栏：遮罩 + 右侧抽屉。放在 main 之后、页脚之前，避免被卡片动画影响定位 -->
+<div class="notice-mask" id="notice-mask"></div>
+<aside class="notice-panel" id="notice-panel" aria-label="通知区" aria-hidden="true">
+  <div class="np-head">
+    <span>通知</span>
+    <button class="np-close" id="notice-close" type="button" aria-label="关闭">&times;</button>
+  </div>
+  <div class="np-list" id="notice-list"></div>
+</aside>
+<!-- 通知数据由 tools/build_portal.py 注入这两个标记之间，日常发通知只改 notices.json，不要手工编辑本区间 -->
+<!-- NOTICES:BEGIN -->
+<script>window.__NOTICES__=[];window.__NOTICE_LATEST__="";</script>
+<!-- NOTICES:END -->
+<script>
+(function () {
+  var KEY = 'portal_notice_read_id';
+  var list = window.__NOTICES__ || [];
+  var latest = window.__NOTICE_LATEST__ || '';
+  var bell = document.getElementById('notice-bell');
+  var dot = document.getElementById('notice-dot');
+  var panel = document.getElementById('notice-panel');
+  var mask = document.getElementById('notice-mask');
+  var closeBtn = document.getElementById('notice-close');
+  var box = document.getElementById('notice-list');
+
+  function readId() {
+    // 隐私模式/存储被禁用时 localStorage 会抛错，静默降级为"没读过"，不打断页面
+    try { return localStorage.getItem(KEY) || ''; } catch (e) { return ''; }
+  }
+  function markRead() {
+    // 只在真的有通知时落盘，避免把空串写进去覆盖后续已读状态
+    try { if (latest) localStorage.setItem(KEY, latest); } catch (e) { /* 隐私模式：静默降级 */ }
+  }
+  function render() {
+    if (!list.length) {
+      box.textContent = '';
+      var empty = document.createElement('p');
+      empty.className = 'np-empty';
+      empty.textContent = '暂无通知';
+      box.appendChild(empty);
+      return;
+    }
+    box.textContent = '';
+    list.forEach(function (n) {
+      // 通知内容全部走 textContent：标题/正文是纯文本，不允许被当成 HTML 解析
+      var item = document.createElement('article');
+      item.className = 'np-item';
+      var date = document.createElement('div');
+      date.className = 'np-date';
+      date.textContent = n.date;
+      if (n.pinned) {
+        var pin = document.createElement('span');
+        pin.className = 'np-pin';
+        pin.textContent = '置顶';
+        date.appendChild(pin);
+      }
+      var title = document.createElement('h3');
+      title.className = 'np-title';
+      title.textContent = n.title;
+      var body = document.createElement('p');
+      body.className = 'np-body';
+      body.textContent = n.body;
+      item.appendChild(date);
+      item.appendChild(title);
+      item.appendChild(body);
+      box.appendChild(item);
+    });
+  }
+  function paint() {
+    // 无通知时 latest 为空，红点一律不显示；读过最新一条也不显示
+    dot.hidden = !(latest && readId() !== latest);
+  }
+  function open() {
+    panel.classList.add('on');
+    panel.setAttribute('aria-hidden', 'false');
+    mask.classList.add('on');
+    bell.setAttribute('aria-expanded', 'true');
+    markRead();
+    paint();
+  }
+  function close() {
+    panel.classList.remove('on');
+    panel.setAttribute('aria-hidden', 'true');
+    mask.classList.remove('on');
+    bell.setAttribute('aria-expanded', 'false');
+  }
+  render();
+  paint();
+  bell.addEventListener('click', function () {
+    if (panel.classList.contains('on')) { close(); } else { open(); }
+  });
+  closeBtn.addEventListener('click', close);
+  mask.addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); } });
+})();
+</script>
 <footer class="site-foot">
   <div class="foot-inner">
     <span>仅限公司内部使用</span>
