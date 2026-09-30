@@ -70,12 +70,12 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 
 .bell-dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#e5484d;border:1.5px solid #fff}
 .notice-mask{position:fixed;inset:0;z-index:40;background:rgba(16,24,40,.28);opacity:0;pointer-events:none;transition:opacity .18s ease}
 .notice-mask.on{opacity:1;pointer-events:auto}
-.notice-panel{position:fixed;top:0;right:0;z-index:41;width:min(380px,100vw);height:100vh;background:var(--card);box-shadow:-8px 0 30px rgba(16,24,40,.14);transform:translateX(100%);transition:transform .2s ease;display:flex;flex-direction:column}
-.notice-panel.on{transform:none}
-.np-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);font-size:15px;font-weight:700}
+.notice-panel{position:fixed;left:50%;top:50%;z-index:41;width:min(520px,calc(100vw - 32px));max-height:70vh;background:var(--card);border-radius:16px;box-shadow:0 24px 60px rgba(16,24,40,.22);display:flex;flex-direction:column;opacity:0;transform:translate(-50%,calc(-50% + 4px));pointer-events:none;transition:opacity .16s ease,transform .16s ease}
+.notice-panel.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.np-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);font-size:15px;font-weight:700;flex:0 0 auto}
 .np-close{border:0;background:none;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;padding:0 4px}
 .np-close:hover{color:var(--brand)}
-.np-list{flex:1;overflow:auto;padding:4px 18px 24px}
+.np-list{flex:1 1 auto;min-height:0;overflow:auto;padding:4px 20px 20px}
 .np-item{padding:14px 0;border-bottom:1px solid var(--line)}
 .np-item:last-child{border-bottom:0}
 .np-date{font-size:12px;color:var(--muted)}
@@ -83,8 +83,27 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 
 .np-title{margin:5px 0 6px;font-size:15px;font-weight:700;line-height:1.4}
 .np-body{margin:0;font-size:13px;line-height:1.7;color:#3c4650;white-space:pre-wrap;word-break:break-word}
 .np-empty{padding:48px 0;text-align:center;color:var(--muted);font-size:13px}
-/* 移动端抽屉占满整屏宽度，否则 380px 会留出一条盖不住页面的缝 */
-@media (max-width:760px){ .notice-panel{width:100vw} }
+/* 居中弹窗在窄屏上留出边距即可，读长段落比占满整屏舒服 */
+@media (max-width:760px){ .notice-panel{max-height:80vh;width:calc(100vw - 32px)} }
+/* 反馈按钮与两个子站保持一致：右下角胶囊 + 原生 dialog 弹窗 */
+.feedback-fab{position:fixed;right:24px;bottom:24px;z-index:40;display:flex;align-items:center;gap:7px;padding:11px 20px;border:0;border-radius:999px;font-family:inherit;font-size:14px;font-weight:600;color:#fff;background:var(--brand);box-shadow:0 6px 16px rgba(16,24,40,.18);cursor:pointer;transition:transform .15s ease,background .15s ease}
+.feedback-fab:hover{background:var(--brand-dark);transform:scale(1.06)}
+.feedback-fab:active{transform:scale(1.02)}
+.fb-dialog{border:none;border-radius:12px;padding:0;width:min(92vw,460px);box-shadow:0 10px 40px rgba(16,24,40,.18)}
+.fb-dialog::backdrop{background:rgba(17,20,24,.45)}
+.fb-dialog form{padding:20px;display:flex;flex-direction:column;gap:10px}
+.fb-dialog h3{margin:0 0 4px;font-size:16px}
+.fb-dialog label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#6C7784}
+.fb-dialog input,.fb-dialog textarea{font:inherit;padding:8px 10px;border:1px solid #DFE6EA;border-radius:8px;resize:vertical;color:#111418}
+.fb-dialog textarea{min-height:110px}
+.fb-row{display:flex;align-items:center;gap:10px}
+.fb-count{margin-right:auto;color:#98A1AC;font-size:12px}
+.fb-cancel{background:#fff;border:1px solid #DFE6EA;border-radius:8px;padding:7px 14px;cursor:pointer}
+.fb-submit{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer}
+.fb-submit[disabled]{opacity:.6;cursor:default}
+.fb-msg{margin:0;font-size:13px;color:#1A8F4C}
+.fb-msg.err{color:#D23F31}
+@media (max-width:760px){ .feedback-fab{right:14px;bottom:14px;padding:10px 17px;font-size:13px} }
 </style>
 </head>
 <body>
@@ -278,5 +297,83 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 
     <span>© 2026 唐山像素智能科技有限公司</span>
   </div>
 </footer>
+<button class="feedback-fab" id="feedback-open" type="button" aria-haspopup="dialog">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+  </svg>
+  <span>反馈</span>
+</button>
+<dialog class="fb-dialog" id="feedback-dialog">
+  <form id="feedback-form">
+    <h3>意见反馈</h3>
+    <label>怎么称呼你（可选）
+      <input name="name" maxlength="30" autocomplete="off">
+    </label>
+    <label>说点什么……
+      <textarea name="message" required maxlength="500"></textarea>
+    </label>
+    <div class="fb-row">
+      <span class="fb-count" id="fb-count">0/500</span>
+      <button type="button" class="fb-cancel" id="fb-cancel">取消</button>
+      <button type="submit" class="fb-submit" id="fb-submit">提交</button>
+    </div>
+    <p class="fb-msg" id="fb-msg" hidden></p>
+  </form>
+</dialog>
+<script>
+(function () {
+  var open = document.getElementById('feedback-open');
+  var dialog = document.getElementById('feedback-dialog');
+  var form = document.getElementById('feedback-form');
+  var msg = document.getElementById('fb-msg');
+  var counter = document.getElementById('fb-count');
+  var submit = document.getElementById('fb-submit');
+  var cancel = document.getElementById('fb-cancel');
+  var message = form.elements.message;
+  message.addEventListener('input', function () {
+    counter.textContent = message.value.length + '/500';
+  });
+  open.addEventListener('click', function () { dialog.showModal(); });
+  cancel.addEventListener('click', function () { dialog.close(); });
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    submit.disabled = true;
+    msg.hidden = true;
+    var payload = {
+      _subject: '信息中心反馈',
+      _template: 'table',
+      _captcha: 'false',
+      '称呼': (form.elements.name.value || '').trim() || '（未填）',
+      '反馈内容': form.elements.message.value,
+      '页面': location.href
+    };
+    fetch('https://formsubmit.co/ajax/' + atob('MzEwMzYzMTU2MUBxcS5jb20='), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (data && String(data.success) === 'true') {
+        msg.textContent = '已收到，谢谢！';
+        msg.className = 'fb-msg';
+        msg.hidden = false;
+        setTimeout(function () {
+          dialog.close();
+          form.reset();
+          counter.textContent = '0/500';
+          msg.hidden = true;
+        }, 1500);
+      } else {
+        throw new Error('fail');
+      }
+    }).catch(function () {
+      msg.textContent = '提交失败，请稍后再试';
+      msg.className = 'fb-msg err';
+      msg.hidden = false;
+    }).finally(function () {
+      submit.disabled = false;
+    });
+  });
+})();
+</script>
 </body>
 </html>
